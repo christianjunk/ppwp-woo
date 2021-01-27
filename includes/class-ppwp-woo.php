@@ -160,7 +160,7 @@ class Ppwp_Woo {
 
 		$plugin_i18n = new Ppwp_Woo_i18n();
 
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
+		$this->loader->add_action( 'init', $plugin_i18n, 'load_plugin_textdomain' );
 
 	}
 
