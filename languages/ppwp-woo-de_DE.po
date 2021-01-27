@@ -4,15 +4,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PPWP WooCommerce Integration 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ppwp-woo\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2021-01-27T13:33:38+01:00\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.4.0\n"
+"PO-Revision-Date: 2021-01-27 18:37+0100\n"
+"X-Generator: Poedit 2.4.2\n"
 "X-Domain: ppwp-woo\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
 
 #. Plugin Name of the plugin
 msgid "PPWP WooCommerce Integration"
@@ -23,7 +25,9 @@ msgid "https://passwordprotectwp.com/extensions/woocommerce-integration/"
 msgstr ""
 
 #. Description of the plugin
-msgid "Automatically generate and send quick access links in order to bypass WordPress password protection to WooCommerce customers after purchase."
+msgid ""
+"Automatically generate and send quick access links in order to bypass "
+"WordPress password protection to WooCommerce customers after purchase."
 msgstr ""
 
 #. Author of the plugin
@@ -41,7 +45,9 @@ msgstr ""
 #. translators: %s Documentation link.
 #: includes/class-ppwp-woo-message.php:36
 msgid ""
-"Select which password protected content will be sent to customers via the %s once they purchase this product. You can restrict link access based on clicks or time.\n"
+"Select which password protected content will be sent to customers via the %s "
+"once they purchase this product. You can restrict link access based on "
+"clicks or time.\n"
 "\t\t\t\t"
 msgstr ""
 
@@ -66,12 +72,15 @@ msgid "Expiration (minutes)"
 msgstr ""
 
 #: includes/class-ppwp-woo-message.php:45
-msgid "Enter the number of minutes before the quick access link expires, or leave blank for no expiry"
+msgid ""
+"Enter the number of minutes before the quick access link expires, or leave "
+"blank for no expiry"
 msgstr ""
 
 #: includes/class-ppwp-woo-message.php:46
 msgid "Set expiration date after the first click or usage"
 msgstr ""
+"Festlegen des Ablaufdatums nach dem ersten Klick oder der ersten Verwendung"
 
 #: includes/class-ppwp-woo-message.php:47
 msgid "Custom message"
@@ -82,7 +91,9 @@ msgid "Insert any text that you want to include in the product order details."
 msgstr ""
 
 #: includes/class-ppwp-woo-message.php:49
-msgid "This is the %product page%. The link will auto-expire after {usage_limit} clicks or at {expiration_time}."
+msgid ""
+"This is the %product page%. The link will auto-expire after {usage_limit} "
+"clicks or at {expiration_time}."
 msgstr ""
 
 #: includes/class-ppwp-woo-message.php:58
@@ -105,16 +116,22 @@ msgstr ""
 
 #. translators: %1$s Plugin name, %2$s call to action, %3$s email.
 #: includes/class-ppwp-woo-message.php:91
-msgid "You didn't purchase this add-on with your %1$s plugin. Please %2$s or drop us an email at %3$s"
+msgid ""
+"You didn't purchase this add-on with your %1$s plugin. Please %2$s or drop "
+"us an email at %3$s"
 msgstr ""
 
 #. translators: %s Extension name.
 #: includes/class-ppwp-woo-message.php:99
-msgid "Please update Password Protect WordPress Lite and Pro to the latest versions for %s extension to work properly."
+msgid ""
+"Please update Password Protect WordPress Lite and Pro to the latest versions "
+"for %s extension to work properly."
 msgstr ""
 
 #: includes/integration/class-ppwp-woo-service.php:457
-msgid "The quick access link will be embedded in the anchor text between the percent sign % %. Use our custom tags to display other dynamic values."
+msgid ""
+"The quick access link will be embedded in the anchor text between the "
+"percent sign % %. Use our custom tags to display other dynamic values."
 msgstr ""
 
 #: includes/integration/class-ppwp-woo-service.php:460
@@ -148,6 +165,7 @@ msgstr ""
 #: includes/integration/class-ppwp-woo-service.php:794
 msgid "Set after the first click or usage"
 msgstr ""
+"Festlegen des Ablaufdatums nach dem ersten Klick oder der ersten Verwendung"
 
 #: includes/integration/class-ppwp-woo-service.php:794
 msgid "Never"
