@@ -32,19 +32,21 @@ class Ppwp_Woo_Message_Manager {
 		return array(
 			'TAB_NAME'                => __( 'PPWP Access Link', 'ppwp-woo' ),
 			'TAB_DESC'                => sprintf(
-				// translators: %s Documentation link.
-				__( 'Select which password protected content will be sent to customers via the %s once they purchase this product.', 'ppwp-woo' ),
-				self::generate_link( 'quick access link', 'https://passwordprotectwp.com/docs/send-quick-access-links-after-woocommerce-purchase/' )
+			// translators: %s Documentation link.
+				__( 'Select which password protected content will be sent to customers via the %s once they purchase this product. You can restrict link access based on clicks or time.
+				', 'ppwp-woo' ),
+				self::generate_link( 'quick access links', 'https://passwordprotectwp.com/docs/send-quick-access-links-after-woocommerce-purchase/' )
 			),
-			'PROTECTED_POST_LABEL'    => __( 'Password protected post', 'ppwp-woo' ),
+			'PROTECTION_TYPE_LABEL'   => __( 'Protection type', 'ppwp-woo' ),
+			'PROTECTED_POST_LABEL'    => __( 'Protected page', 'ppwp-woo' ),
 			'DEFAULT_OPTION_LABEL'    => __( '— Select a password protected page —', 'ppwp-woo' ),
-			'USAGE_LIMIT_TOOLTIP'     => __( 'Leave blank for unlimited times of usage', 'ppwp-woo' ),
-			'EXPIRY_DATE_LABEL'       => __( 'Expiration time', 'ppwp-woo' ),
+			'USAGE_LIMIT_TOOLTIP'     => __( 'Leave blank for unlimited usage', 'ppwp-woo' ),
+			'EXPIRY_DATE_LABEL'       => __( 'Expiration (minutes)', 'ppwp-woo' ),
 			'EXPIRY_DATE_TOOLTIP'     => __( 'Enter the number of minutes before the quick access link expires, or leave blank for no expiry', 'ppwp-woo' ),
+			'USE_FIRST_EXPIRY_DATE'   => __( 'Set expiration date after the first click or usage', 'ppwp-woo' ),
 			'CUSTOM_TEXT_LABEL'       => __( 'Custom message', 'ppwp-woo' ),
-			'CUSTOM_TEXT_TOOLTIP'     => __( 'Insert any text that you want to include in the order product details. The text within the percent sign % % will become the quick access link. Use {usage_limit} to display the access link\'s usage limit and {expiration_time} to display expiration time.', 'ppwp-woo' ),
-			'CUSTOM_TEXT_PLACEHOLDER' => __( 'This is %product page%. This link will be expire after {usage_limit} clicks or at {expiration_time}.', 'ppwp-woo' ),
-			'PROTECTION_TYPE_LABEL'   => __( 'Password protection type', 'ppwp-woo' ),
+			'CUSTOM_TEXT_TOOLTIP'     => __( 'Insert any text that you want to include in the product order details.', 'ppwp-woo' ),
+			'CUSTOM_TEXT_PLACEHOLDER' => __( 'This is the %product page%. The link will auto-expire after {usage_limit} clicks or at {expiration_time}.', 'ppwp-woo' ),
 		);
 	}
 
@@ -131,8 +133,11 @@ class Ppwp_Woo_Message_Manager {
 		}
 
 		if ( ! ppwp_woo_is_ppwp_free_active() ) {
-			// No need to show notice because Pro already did it.
-			return false;
+			if ( ! $should_check_valid_addon ) {
+				return false;
+			}
+
+			return self::get_plugin_compatibility_msg()['activate_ppwp_free'];
 		}
 
 		if ( ! ppwp_woo_is_ppwp_pro_license_valid() ) {

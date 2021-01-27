@@ -16,7 +16,7 @@
  * Plugin Name:       PPWP WooCommerce Integration
  * Plugin URI:        https://passwordprotectwp.com/extensions/woocommerce-integration/
  * Description:       Automatically generate and send quick access links in order to bypass WordPress password protection to WooCommerce customers after purchase.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Author:            BWPS
  * Author URI:        https://passwordprotectwp.com/extensions/
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'PPWP_WOO_VERSION', '1.1.0' );
+define( 'PPWP_WOO_VERSION', '1.2.0' );
 define( 'PPWP_WOO_PLUGIN_NAME', 'PPWP WooCommerce Integration' );
 
 if ( ! defined( 'PPWP_WOO_MAIN_FILE' ) ) {

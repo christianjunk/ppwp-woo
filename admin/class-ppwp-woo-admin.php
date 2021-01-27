@@ -73,9 +73,6 @@ class Ppwp_Woo_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if ( $this->should_load_assets() ) {
-			wp_enqueue_style( 'ppwp-woo', PPWP_WOO_URL . '/admin/dist/ppwp-woo-tab.css', array(), PPWP_WOO_VERSION );
-		}
 	}
 
 	/**

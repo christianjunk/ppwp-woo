@@ -64,3 +64,31 @@ function ppwp_woo_is_required_plugin_version( $plugin_version, $required_version
 		'>='
 	);
 }
+
+/**
+ * Get product quantity by order id and product id.
+ *
+ * @param integer $order_id   Order ID.
+ * @param integer $product_id Product ID.
+ *
+ * @return int Product quantity.
+ */
+function ppwp_woo_get_product_quantity( $order_id, $product_id ) {
+	// wc_get_order function is available in version 2.2.
+	if ( ! function_exists( 'wc_get_order' ) ) {
+		return 1;
+	}
+
+	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		return 1;
+	}
+	foreach ( $order->get_items() as $item_id => $item_data ) {
+		$product = $item_data->get_product();
+		if ( $product->get_id() === $product_id ) {
+			return $item_data->get_quantity();
+		}
+	}
+
+	return 1;
+}

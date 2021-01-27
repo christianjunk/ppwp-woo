@@ -58,6 +58,7 @@ class PPWP_Woo_SC extends PPWP_Pro_Abstract_Shortcode {
 			'product_id'  => 0,
 			'order_id'    => 0,
 			'text'        => '',
+			'quantity'    => 1,
 		];
 		$this->attributes = apply_filters( 'ppwp_woo_add_more_shortcode_attr', $this->attributes );
 	}
@@ -118,14 +119,18 @@ class PPWP_Woo_SC extends PPWP_Pro_Abstract_Shortcode {
 	 * @return string
 	 */
 	private function massage_custom_text( $attrs, $result ) {
-		$text        = trim( $attrs['text'] );
+		$text     = trim( $attrs['text'] );
+		$post_id  = $attrs['id'];
+		$page_url = get_permalink( $post_id );
+
 		$usage_limit = $result['usage_limit'];
 		// Convert timestamp to string date time based on the WordPress configuration.
 		$expired_date = is_numeric( $result['expired_date'] )
 			? get_date_from_gmt( date( 'Y-m-d H:i:s', $result['expired_date'] ), 'F j, Y H:i:s' )
 			: $result['expired_date'];
+		$bypass_url   = $result['url'];
+		$password     = $result['password'];
 
-		$bypass_url = $result['url'];
 		if ( '' === $text ) {
 			ob_start();
 			?>
@@ -157,6 +162,9 @@ class PPWP_Woo_SC extends PPWP_Pro_Abstract_Shortcode {
 
 		$text = preg_replace( '/{usage_limit}/', $usage_limit, $text );
 		$text = preg_replace( '/{expiration_time}/', $expired_date, $text );
+		$text = preg_replace( '/{access_link}/', $bypass_url, $text );
+		$text = preg_replace( '/{password}/', $password, $text );
+		$text = preg_replace( '/{page_url}/', $page_url, $text );
 
 		return $text;
 	}

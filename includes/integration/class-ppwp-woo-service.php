@@ -90,6 +90,7 @@ class PPWP_Woo_Service {
 		add_action( 'wp_head', array( $this, 'check_shop_is_protected' ) );
 		add_action( 'woocommerce_before_shop_loop', array( $this, 'display_password_form_before_shop_loop' ), 10 );
 		add_action( 'woocommerce_before_single_product', array( $this, 'display_password_form_on_product' ), 10 );
+		add_filter( 'ppwp_before_update_password_hit_count', array( $this, 'handle_before_update_password_hit_count' ), 10, 2 );
 	}
 
 	/**
@@ -354,30 +355,32 @@ class PPWP_Woo_Service {
 	 * @return string
 	 */
 	public function render_bypass_url_sc( $item_id, $item, $order ) {
-
 		do_action( 'ppwp_woo_before_render_bypass_url_shortcode', $item_id, $item_id, $order );
 
-		$product = $item->get_product();
+		$product  = $item->get_product();
+		$quantity = $item->get_quantity();
+
 		// Only support for virtual (no shipping) product. Can extend the condition by using hook.
 		$supported_product = apply_filters( 'ppwp_woo_supported_product_condition', $product->is_virtual() );
 		if ( ! $supported_product ) {
 			return '';
 		}
 
-		$product_id = $product->get_id();
-
+		$product_id  = $product->get_id();
 		$post_id     = get_post_meta( $product_id, '_ppwp_woo_protected_post', true );
 		$usage_limit = get_post_meta( $product_id, '_ppwp_woo_usage_limit', true );
 		$expiration  = get_post_meta( $product_id, '_ppwp_woo_expiration', true );
+
 		$custom_text = $this->escape_shortcode_attrs( get_post_meta( $product_id, '_ppwp_woo_custom_text', true ) );
 		$attributes  = sprintf(
-			'id=%1$d product_id=%2$d usage_limit=%3$d expiry_time=%4$d order_id=%5$d text="%6$s"',
+			'id=%1$d product_id=%2$d usage_limit=%3$d expiry_time=%4$d order_id=%5$d text="%6$s" quantity=%7$d',
 			$post_id,
 			$product_id,
 			$usage_limit,
 			$expiration,
 			$order->get_id(),
-			$custom_text
+			$custom_text,
+			$quantity
 		);
 
 		// Fire hook here than can change the shortcode attributes.
@@ -446,11 +449,21 @@ class PPWP_Woo_Service {
 						<?php call_user_func( $field['callback'], $field['data'] ); ?>
 					</div>
 					<?php
-				} else {
+				} elseif ( ! isset( $field['required_pro_ver'] ) || ppwp_woo_is_required_plugin_version( 'PPW_PRO_VERSION', $field['required_pro_ver'] ) ) {
 					call_user_func( $field['callback'], $field['data'] );
 				}
 			}
 			?>
+			<p><i><?php echo __('The quick access link will be embedded in the anchor text between the percent sign % %. Use our custom tags to display other dynamic values.', 'ppwp-woo' ); ?></i></p>
+			<i>
+				<ol>
+					<li>{page_url} <?php echo __( 'will be replaced with the protected content URL', 'ppwp-woo' ); ?></li>
+					<li>{password} <?php echo __( 'refers to the password used to unlock the protected content', 'ppwp-woo' ); ?></li>
+					<li>{access_link} <?php echo __( 'refers to the quick access link', 'ppwp-woo' ); ?></li>
+					<li>{usage_limit} <?php echo __( 'will be replaced with the maximum number of times the link is clicked', 'ppwp-woo' ); ?></li>
+					<li>{expiration_time} <?php echo __( 'will be replaced with the time when the link expires', 'ppwp-woo' ); ?></li>
+				</ol>
+			</i>
 		</div>
 		<?php
 	}
@@ -467,8 +480,8 @@ class PPWP_Woo_Service {
 			array(
 				'data'     => array(
 					'id'                => '_ppwp_woo_usage_limit',
-					'label'             => __( 'Usage limit', 'ppwp-woo' ),
-					'desc_tip'          => false,
+					'label'             => __( 'Usage limit (clicks)', 'ppwp-woo' ),
+					'desc_tip'          => true,
 					'description'       => Ppwp_Woo_Message_Manager::get_text()['USAGE_LIMIT_TOOLTIP'],
 					'type'              => 'number',
 					'custom_attributes' => array(
@@ -476,7 +489,6 @@ class PPWP_Woo_Service {
 						'step' => '1',
 					),
 					'class'             => 'ppwp-woo-custom-input',
-					'wrapper_class'     => 'ppwp-woo-field',
 					'style'             => $common_inline_style,
 				),
 				'callback' => 'woocommerce_wp_text_input',
@@ -484,10 +496,18 @@ class PPWP_Woo_Service {
 			),
 			array(
 				'data'     => array(
+					'id'                => '_ppwp_woo_is_set_usage_limit_with_quantity',
+					'description'       => 'Set usage limit based on product quantity',
+					'label'             => '',
+				),
+				'callback' => 'woocommerce_wp_checkbox',
+				'visible'  => true,
+			),
+			array(
+				'data'     => array(
 					'id'                => '_ppwp_woo_expiration',
-					// translators: %s Expiration unit.
 					'label'             => Ppwp_Woo_Message_Manager::get_text()['EXPIRY_DATE_LABEL'],
-					'desc_tip'          => false,
+					'desc_tip'          => true,
 					'description'       => Ppwp_Woo_Message_Manager::get_text()['EXPIRY_DATE_TOOLTIP'],
 					'type'              => 'number',
 					'custom_attributes' => array(
@@ -495,7 +515,6 @@ class PPWP_Woo_Service {
 						'step' => '1',
 					),
 					'class'             => 'ppwp-woo-custom-input',
-					'wrapper_class'     => 'ppwp-woo-field',
 					'style'             => $common_inline_style,
 				),
 				'callback' => 'woocommerce_wp_text_input',
@@ -503,15 +522,33 @@ class PPWP_Woo_Service {
 			),
 			array(
 				'data'     => array(
+					'id'                => '_ppwp_woo_is_set_expiration_time_with_quantity',
+					'description'       => 'Set expiration date based on product quantity',
+					'label'             => '',
+				),
+				'callback' => 'woocommerce_wp_checkbox',
+				'visible'  => true,
+			),
+			array(
+				'data'             => array(
+					'id'          => '_ppwp_woo_is_expired_date_from_first_time_login',
+					'description' => Ppwp_Woo_Message_Manager::get_text()['USE_FIRST_EXPIRY_DATE'],
+					'label'       => '',
+				),
+				'callback'         => 'woocommerce_wp_checkbox',
+				'required_pro_ver' => '1.3.0.1',
+				'visible'          => true,
+			),
+			array(
+				'data'     => array(
 					'id'                => '_ppwp_woo_custom_text',
 					'label'             => Ppwp_Woo_Message_Manager::get_text()['CUSTOM_TEXT_LABEL'],
 					'placeholder'       => Ppwp_Woo_Message_Manager::get_text()['CUSTOM_TEXT_PLACEHOLDER'],
 					'description'       => Ppwp_Woo_Message_Manager::get_text()['CUSTOM_TEXT_TOOLTIP'],
+					'desc_tip'          => true,
 					'custom_attributes' => array(
 						'cols' => 50,
 					),
-					'class'             => 'ppwp-woo-custom-textarea',
-					'wrapper_class'     => 'ppwp-woo-field',
 					'style'             => $common_inline_style . ';height:5.5em',
 				),
 				'callback' => 'woocommerce_wp_textarea_input',
@@ -609,14 +646,19 @@ class PPWP_Woo_Service {
 		$keys = array(
 			'_ppwp_woo_protected_post',
 			'_ppwp_woo_usage_limit',
+			'_ppwp_woo_is_expired_date_from_first_time_login',
 			'_ppwp_woo_expiration',
 			'_ppwp_woo_custom_text',
 			'_ppwp_woo_protection_type',
+			'_ppwp_woo_is_set_usage_limit_with_quantity',
+			'_ppwp_woo_is_set_expiration_time_with_quantity',
 		);
 
 		foreach ( $keys as $key ) {
 			if ( isset( $_POST[ $key ] ) ) { // phpcs:ignore
 				update_post_meta( $post_id, $key, $_POST[ $key ] ); // phpcs:ignore
+			} else {
+				update_post_meta( $post_id, $key, false );
 			}
 		}
 
@@ -636,7 +678,8 @@ class PPWP_Woo_Service {
 	 */
 	public function create_bypass_param( $attrs ) {
 		$params = [
-			'label' => sprintf( PPWP_Woo_Constants::WOO_PWD_LABEL_FORMAT, $attrs['order_id'], $attrs['product_id'] ),
+			'label'      => sprintf( PPWP_Woo_Constants::WOO_PWD_LABEL_FORMAT, $attrs['order_id'], $attrs['product_id'] ),
+			'product_id' => $attrs['product_id'],
 		];
 
 		if ( isset( $attrs['usage_limit'] ) && ! empty( $attrs['usage_limit'] ) ) {
@@ -646,6 +689,11 @@ class PPWP_Woo_Service {
 		// In DB we are using expired_date, should pass the valid attribute.
 		if ( isset( $attrs['expiry_time'] ) && ! empty( $attrs['expiry_time'] ) ) {
 			$params['expired_date'] = $attrs['expiry_time'];
+		}
+
+		// Product quantity, should pass the valid attribute.
+		if ( isset( $attrs['quantity'] ) && ! empty( $attrs['quantity'] ) ) {
+			$params['quantity'] = $attrs['quantity'];
 		}
 
 		return $params;
@@ -679,6 +727,9 @@ class PPWP_Woo_Service {
 			return false;
 		}
 
+		$product_id                            = isset( $parameters['product_id'] ) ? $parameters['product_id'] : 0;
+		$is_expired_date_from_first_time_login = 'yes' === get_post_meta( $product_id, '_ppwp_woo_is_expired_date_from_first_time_login', true );
+
 		// Try to find the password with label (containing product ID and order ID) and type is WooCommerce.
 		$existing_passwords = $this->get_passwords_by_post_id_and_label( $post_id, $parameters['label'] );
 		if ( empty( $existing_passwords ) ) {
@@ -688,9 +739,28 @@ class PPWP_Woo_Service {
 				return false;
 			}
 
-			$password     = generate_pwd();
-			$expired_date = isset( $parameters['expired_date'] ) ? $this->get_expiration_timestamp( $parameters['expired_date'], PPWP_Woo_Constants::get_expiration_unit() ) : null;
 			$usage_limit  = isset( $parameters['usage_limit'] ) ? $parameters['usage_limit'] : null;
+			$expired_date = isset( $parameters['expired_date'] ) && ! $is_expired_date_from_first_time_login ? $parameters['expired_date'] : null;
+			$quantity     = isset( $parameters['quantity'] ) ? (int) $parameters['quantity'] : 1;
+
+			/**
+			 * If user turned on "usage limit with quantity" option:
+			 *    Usage limit = quantity x current usage limit
+			 * If user turned on "expiration time with quantity" option:
+			 *    Expired date = quantity x current expired date
+			 * If usage limit or expired date is unlimited then don't set value.
+			 */
+			$is_set_usage_limit_with_quantity     = 'yes' === get_post_meta( $product_id, '_ppwp_woo_is_set_usage_limit_with_quantity', true );
+			$is_set_expiration_time_with_quantity = 'yes' === get_post_meta( $product_id, '_ppwp_woo_is_set_expiration_time_with_quantity', true );
+			if ( ! is_null( $usage_limit ) && $is_set_usage_limit_with_quantity ) {
+				$usage_limit = $quantity * $usage_limit;
+			}
+			if ( ! is_null( $expired_date ) && $is_set_expiration_time_with_quantity ) {
+				$expired_date = $quantity * $expired_date;
+			}
+
+			$expired_date = ! is_null( $expired_date ) ? $this->get_expiration_timestamp( $expired_date, PPWP_Woo_Constants::get_expiration_unit() ) : null;
+			$password     = generate_pwd();
 
 			$result = $ppwp_repo->add_new_password(
 				array(
@@ -721,10 +791,13 @@ class PPWP_Woo_Service {
 			$bypass_url = $post_url . '?' . PPW_Pro_Constants::BYPASS_PARAM . '=' . $token;
 		}
 
+		$expired_date_text = $is_expired_date_from_first_time_login && isset( $parameters['expired_date'] ) ? __( 'Set after the first click or usage', 'ppwp-woo' ) : __( 'Never', 'ppwp-woo' );
+
 		return array(
 			'url'          => $bypass_url,
-			'usage_limit'  => isset( $usage_limit ) ? $usage_limit : 'Unlimited',
-			'expired_date' => isset( $expired_date ) ? $expired_date : 'Never',
+			'password'     => $password,
+			'usage_limit'  => isset( $usage_limit ) ? $usage_limit : __( 'Unlimited', 'ppwp-woo' ),
+			'expired_date' => isset( $expired_date ) ? $expired_date : $expired_date_text,
 		);
 	}
 
@@ -803,5 +876,56 @@ class PPWP_Woo_Service {
 		$types = array_merge( $types, ppw_core_get_setting_type_array( PPW_Pro_Constants::WPP_WHITELIST_COLUMN_PROTECTIONS ) );
 
 		return $types;
+	}
+
+	/**
+	 * Handle before update password hit count.
+	 *
+	 * @param array  $data             Data to update to Password.
+	 * @param object $advance_password Password data from database.
+	 *
+	 * @return array
+	 */
+	public function handle_before_update_password_hit_count( $data, $advance_password ) {
+		// Only handle for WooCommerce type.
+		if ( ! property_exists( $advance_password, 'campaign_app_type' ) || PPWP_Woo_Constants::WOO_PWD_TYPE !== $advance_password->campaign_app_type ) {
+			return $data;
+		}
+		if ( ! property_exists( $advance_password, 'label' ) || empty( $advance_password->label ) ) {
+			return $data;
+		}
+
+		$labels = explode( '-', $advance_password->label );
+		if ( count( $labels ) < 2 ) {
+			return $data;
+		}
+
+		// Label = {$order_id}-{$product_id}.
+		$order_id               = absint( $labels[0] );
+		$product_id             = absint( $labels[1] );
+		$is_set_expiration_time = get_post_meta( $product_id, '_ppwp_woo_is_expired_date_from_first_time_login', true );
+
+		if ( 'yes' !== $is_set_expiration_time ) {
+			return $data;
+		}
+
+		/**
+		 * Set expired time if user turn on option and set time to expiration option.
+		 */
+		if ( ! property_exists( $advance_password, 'expired_date' ) || ! is_null( $advance_password->expired_date ) ) {
+			return $data;
+		}
+
+		$quantity   = (int) ppwp_woo_get_product_quantity( $order_id, $product_id );
+		$expiration = (int) get_post_meta( $product_id, '_ppwp_woo_expiration', true );
+		if ( ! empty( $expiration ) ) {
+			$is_set_expiration_time_with_quantity = get_post_meta( $product_id, '_ppwp_woo_is_set_expiration_time_with_quantity', true );
+			if ( 'yes' === $is_set_expiration_time_with_quantity ) {
+				$expiration = $quantity * $expiration;
+			}
+			$data['expired_date'] = strtotime( "+{$expiration} minutes", time() );
+		}
+
+		return $data;
 	}
 }

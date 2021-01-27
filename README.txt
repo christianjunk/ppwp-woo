@@ -16,11 +16,21 @@ Automatically generate and send quick access links in order to bypass WordPress 
 
 == Changelog ==
 
+= 1.2.0: June 12, 2020 =
+
+- [Feature] Set expiration time after the first use of the password
+
+- [Feature] Link usage limit to quantity
+
+- [Improvement] Display both passwords & quick access links
+
+- [BugFix] Can activate PPWP Woo if PPWP Free hasn't been installed
+
 = 1.1.0: May 4, 2020 =
 
-* Protect WooCommerce shop page
+* [Feature] Protect WooCommerce shop page
 
 = 1.0.0: April 28, 2020 =
 
-* Bypass WordPress password protection to WooCommerce customers after purchase.
+* [Feature] Bypass WordPress password protection to WooCommerce customers after purchase.
 
