@@ -359,6 +359,13 @@ class PPWP_Woo_Service {
 
 		$product  = $item->get_product();
 		$quantity = $item->get_quantity();
+		$status = $order->get_status();
+
+		error_log($status);
+
+		if ( ! $order->is_paid() ) {
+			return '';
+		}
 
 		// Only support for virtual (no shipping) product. Can extend the condition by using hook.
 		$supported_product = apply_filters( 'ppwp_woo_supported_product_condition', $product->is_virtual() );
