@@ -37,7 +37,7 @@ class Ppwp_Woo_i18n {
 		load_plugin_textdomain(
 			'ppwp-woo',
 			false,
-			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
+			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages'
 		);
 
 	}
