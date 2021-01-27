@@ -124,10 +124,15 @@ class PPWP_Woo_SC extends PPWP_Pro_Abstract_Shortcode {
 		$page_url = get_permalink( $post_id );
 
 		$usage_limit = $result['usage_limit'];
-		// Convert timestamp to string date time based on the WordPress configuration.
-		$expired_date = is_numeric( $result['expired_date'] )
-			? get_date_from_gmt( date( 'Y-m-d H:i:s', $result['expired_date'] ), 'F j, Y H:i:s' )
-			: $result['expired_date'];
+		
+		if (is_numeric( $result['expired_date'])) {
+            $correct_date = get_date_from_gmt( date( 'Y-m-d H:i:s', $result['expired_date'] ), 'j. F Y H:i:s' );
+            $expired_date = date_i18n( 'j. F Y H:i:s', strtotime($correct_date) );
+        }
+        else {
+            $expired_date = $result['expired_date'];
+        }
+
 		$bypass_url   = $result['url'];
 		$password     = $result['password'];
 
